@@ -1,8 +1,4 @@
 
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-#用于esom结果删除各个bin中的污染序列
-"""
 author: jin
 date: 2018.11.17
 function: none
