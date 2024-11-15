@@ -17,15 +17,14 @@ ls -d *| parallel -j 5 megahit -m 0.5 --min-contig-len 200 -t 10 --out-dir {}_Ou
 Bin_as_binning.sh -s cons_sample.list.s -o 0.3_all_bins/0.3.1_bin_results 
 
 4：For genome de_replicate:
-galah cluster --ani 95 --min-aligned-fraction 30 --output-cluster-definition all_bins_80_5.cls.tsv -t 32 --genome-fasta-list all_bins_80_5.path
-less -S all_bins_80_5.cls.tsv | perl -a -F"\t" -lne '@F[0]=~/.*\/(.*?).fa/; $o1=$1; @F[1]=~/.*\/(.*?).fa/; $o2=$1; print "$o1\t$o2" ' | sort -k1 | perl -a -F"\t" -lne 'BEGIN{$n=""; $c=0}; if(@F[0] ne $n){ $c++; $n=@F[0]}; $o="SGB.".$c; print "$_\t$o" ' | csvtk join -t -T -H -f"2;1" - 0.4_all_80_5_bins/all_80_5_bins_cm.s | perl -a -F"\t" -lne '$score=@F[4]-5*@F[5]; print "$_\t$score" ' |  sort -t $'\t' -k1,1 -k9,9nr -k7,7nr | perl -a -F"\t" -lne 'BEGIN{$n="";}; if(@F[0] ne $n){$o="Rep_genome"; $n=@F[0]}else{$o="Member"}; print "$_\t$o" ' > all_bins_80_5.cls.rep
-grep Rep all_bins_80_5.cls.rep | cut -f2,3 | perl -lane 'print "cp -d /ddnstor/imau_sunzhihong/imau_liyl/Autism/Healthy_child/0.4_all_80_5_bins/bins_80_5/@F[0].fa rep_genome/@F[1].fa" ' | rush {} -j 5
+dRep compare drep.out -p 140 -pa 0.9 -sa 0.95 -nc 0.3 --S_algorithm fastANI -g bins_80_5/* less drep_out/data_tables/Cdb.csv | sed 's/.fa//g' | sed -e 's/,/\t/g' | csvtk join -t -T -H - all_80_5_bins_cm.s | perl -a -F"\t" -lne '$sc=@F[10]-5*@F[11]; $n50=@F[17]; $gs=@F[13]; print "@F[0]\t@F[1]\t$sc\t$n50\t$gs" ' | sort -k2,2 -k3,3nr -k4,4nr -k5,5nr | perl -lane 'if(@F[1] ne $n){print $_; $n=@F[1]}' > 0.4.3_SGB.info cat 0.4.3_SGB.info | awk -F "\t" {'print $1'} > all_SGBs_names; cat all_SGBs_names | parallel -j 50 cp bins_80_5/{}.fa ../0.5_all_SGBs/0.5.1_all_SGBs
 
 5：For relative abundance:
 Bin_abundance.sh -s first_sample.list.s -r /ddnstor/imau_sunzhihong/userdata/data_mat/meta_item/diarrhea/0.5_all_SGBs/rep_genome -o 0.6_all_SGBs_abundance -t 32
 
 6：For species alignment and annotation:
-fastANI --ql own_list --refList ref_list.tsv --visualize --matrix -o GTDB_query -t 136 # For ref_list.tsv, you can use the latest published database, such as DTDB database
+Bin_get_gtdb_annotation.sh -l own_list -o new # For ref_list.tsv, you can use the latest published database, such as DTDB database
+
 7：For Bacteriophage identification:
 
 ls -d ../01_filtered_renamed_assembly/*fa | parallel --plus --dryrun VIBRANT_run.py -i ../01_filtered_renamed_assembly/{/} -t 10 | parallel -j 6 {} # VIBRANT
