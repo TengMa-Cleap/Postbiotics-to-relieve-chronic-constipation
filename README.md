@@ -17,12 +17,15 @@ ls -d *| parallel -j 5 megahit -m 0.5 --min-contig-len 200 -t 10 --out-dir {}_Ou
 Bin_as_binning.sh -s cons_sample.list.s -o 0.3_all_bins/0.3.1_bin_results 
 
 4：For genome de_replicate:
+
 dRep compare drep.out -p 140 -pa 0.9 -sa 0.95 -nc 0.3 --S_algorithm fastANI -g bins_80_5/* less drep_out/data_tables/Cdb.csv | sed 's/.fa//g' | sed -e 's/,/\t/g' | csvtk join -t -T -H - all_80_5_bins_cm.s | perl -a -F"\t" -lne '$sc=@F[10]-5*@F[11]; $n50=@F[17]; $gs=@F[13]; print "@F[0]\t@F[1]\t$sc\t$n50\t$gs" ' | sort -k2,2 -k3,3nr -k4,4nr -k5,5nr | perl -lane 'if(@F[1] ne $n){print $_; $n=@F[1]}' > 0.4.3_SGB.info cat 0.4.3_SGB.info | awk -F "\t" {'print $1'} > all_SGBs_names; cat all_SGBs_names | parallel -j 50 cp bins_80_5/{}.fa ../0.5_all_SGBs/0.5.1_all_SGBs
 
 5：For relative abundance:
+
 Bin_abundance.sh -s first_sample.list.s -r /ddnstor/imau_sunzhihong/userdata/data_mat/meta_item/diarrhea/0.5_all_SGBs/rep_genome -o 0.6_all_SGBs_abundance -t 32
 
 6：For species alignment and annotation:
+
 Bin_get_gtdb_annotation.sh -l own_list -o new # For ref_list.tsv, you can use the latest published database, such as DTDB database
 
 7：For Bacteriophage identification:
